@@ -1,7 +1,18 @@
-import { Link } from "@nextui-org/react";
+import {
+  Link,
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  Button,
+  useDisclosure,
+} from "@nextui-org/react";
 import { FaFacebook, FaTwitter, FaInstagram, FaLinkedin } from "react-icons/fa";
 
 const Footer = () => {
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
+
   return (
     <footer className="py-8 border-t border-gray-200 bg-background">
       <div className="container px-4 mx-auto">
@@ -22,8 +33,8 @@ const Footer = () => {
                 fillRule="evenodd"
               />
             </svg>
-            <h2 className="mt-2 text-lg font-bold">ACME Corporation</h2>
-            <p className="mt-2">Innovating for a better tomorrow</p>
+            <h2 className="mt-2 text-lg font-bold">Surety Auto Group</h2>
+            <p className="mt-2">Innovating for better insurance solutions</p>
           </div>
 
           {/* Social Media Links */}
@@ -48,10 +59,10 @@ const Footer = () => {
           {/* Contact Information */}
           <div>
             <h3 className="mb-4 text-lg font-semibold">Contact Us</h3>
-            <p>123 Tech Lane</p>
-            <p>Innovation City, IN 54321</p>
+            <p>123 Insurance Lane</p>
+            <p>Surety City, SA 54321</p>
             <p>Phone: (555) 123-4567</p>
-            <p>Email: info@acmecorp.com</p>
+            <p>Email: info@suretyautogroup.com</p>
           </div>
 
           {/* TCPA Compliance */}
@@ -62,20 +73,67 @@ const Footer = () => {
               partners may contact you via phone or SMS. To opt-out, reply STOP
               or contact us.
             </p>
-            <Link
-              href="#"
-              className="inline-block mt-2 text-sm text-primary hover:underline"
+            <Button
+              onPress={onOpen}
+              className="h-auto p-0 mt-2 text-sm font-normal bg-transparent text-primary hover:underline min-w-min"
             >
               View Full TCPA Policy
-            </Link>
+            </Button>
           </div>
         </div>
 
         {/* Copyright */}
         <div className="pt-8 mt-8 text-center border-t border-gray-200">
-          <p>&copy; 2024 ACME Corporation. All rights reserved.</p>
+          <p>&copy; 2024 Surety Auto Group. All rights reserved.</p>
         </div>
       </div>
+
+      {/* TCPA Policy Modal */}
+      <Modal
+        isOpen={isOpen}
+        onOpenChange={onOpenChange}
+        size="2xl"
+        backdrop="blur"
+        closeButton
+      >
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className="flex flex-col gap-1">
+                TCPA Policy
+              </ModalHeader>
+              <ModalBody>
+                <p className="text-sm text-foreground">
+                  By interacting with Surety Auto Group, you are providing your
+                  consent for Surety Auto Group to use automated technology,
+                  including calls, texts, prerecorded messages and emails, to
+                  contact you about insurance offers at the number and email you
+                  provide, even if your number is on a corporate, state or
+                  national do not call list. This consent is not required to
+                  make a purchase or use our services.
+                </p>
+                <p className="mt-4 text-sm text-foreground">
+                  Our{" "}
+                  <a className="text-blue-600 hover:underline" href="#">
+                    Terms & conditions
+                  </a>{" "}
+                  and{" "}
+                  <a href="#" className="text-blue-600 hover:underline">
+                    Privacy policy
+                  </a>{" "}
+                  apply. Message and data rates may apply. You can text "STOP"
+                  at any time to unsubscribe from our messages.
+                </p>
+              </ModalBody>
+              <ModalFooter>
+                <Button color="primary" onPress={onClose}>
+                  Close
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
     </footer>
   );
 };

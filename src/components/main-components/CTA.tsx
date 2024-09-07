@@ -11,7 +11,7 @@ export default function CTA() {
           href="tel:18045313796"
           size="lg"
           startContent={<Phone className="w-5 h-5" />}
-          className="mb-6 text-lg font-semibold bg-blue-500 text-foreground"
+          className="mb-6 text-lg font-semibold bg-primary text-background"
         >
           (804) 453-3796
         </Button>

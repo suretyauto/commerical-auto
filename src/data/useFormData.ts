@@ -4,6 +4,18 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 const initialFormData: FormData = {
   zipcode: "",
   businessName: "",
+  dbaName: "",
+  businessAddress: "",
+  businessAddress2: "",
+  businessCity: "",
+  businessState: "",
+  businessZipcode: "",
+  yearStarted: undefined,
+  ein: "",
+  firstName: "",
+  lastName: "",
+  email: "",
+  phone: "",
 };
 
 const useFormData = () => {

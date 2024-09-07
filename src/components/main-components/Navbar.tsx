@@ -6,9 +6,11 @@ import {
   NavbarItem,
   Button,
   Link,
+  Image,
 } from "@nextui-org/react";
 import { ModeToggle } from "@/utils/mode-toggle";
 import { Phone } from "lucide-react";
+import SAGLogo from "../../assets/saglogo.png";
 
 const Nav: React.FC = () => {
   return (
@@ -26,9 +28,14 @@ const Nav: React.FC = () => {
       {/* Center - Logo */}
       <NavbarContent justify="center">
         <NavbarBrand>
-          <p className="text-sm font-bold sm:text-xl text-inherit">
-            Surety Insurance
-          </p>
+          <Image
+            src={SAGLogo}
+            alt="SAG Logo"
+            height={50}
+            onClick={() => {
+              window.location.href = "/";
+            }}
+          />
         </NavbarBrand>
       </NavbarContent>
 
