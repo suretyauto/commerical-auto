@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useForm, SubmitHandler, Controller } from "react-hook-form";
 import { Input, Button } from "@nextui-org/react";
 import { useNavigate } from "react-router-dom";
@@ -25,7 +25,7 @@ export default function EINForm() {
     defaultValues: {
       ein: formData.ein || "",
     },
-    mode: "onSubmit", // Changed to onSubmit
+    mode: "onSubmit",
   });
 
   const onSubmit: SubmitHandler<EinNumberFormData> = (data) => {

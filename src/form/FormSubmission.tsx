@@ -13,7 +13,7 @@ const FormSubmissionHandler: React.FC = () => {
     const submitForm = async () => {
       const params = new URLSearchParams({
         CampaignId: "3163C1951FBEBBC79A008F76EFADDC11",
-        IsTest: "True",
+        IsTest: "False",
         BusinessName: formData.businessName || "",
         BusinessDBA: formData.dbaName || "",
         Address1: formData.businessAddress || "",
