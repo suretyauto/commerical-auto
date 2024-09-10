@@ -13,4 +13,9 @@ export type FormData = {
   lastName?: string;
   email?: string;
   phone?: string;
+  lastCompletedAt?: string;
+  lastCompletedStep?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  uuid?: string;
 };

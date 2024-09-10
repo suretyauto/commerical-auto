@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { Input, Button, Checkbox } from "@nextui-org/react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import useFormData from "@/data/useFormData";
 import { ChevronRight, ChevronLeft } from "lucide-react";
 import { motion } from "framer-motion";
+import { supabase } from "@/utils/supabase";
 
 type BusinessNameFormData = {
   businessName: string;
@@ -12,10 +13,26 @@ type BusinessNameFormData = {
   dbaName?: string;
 };
 
+const logAnalyticsEvent = async (
+  userId: string,
+  eventType: string,
+  eventData: unknown = {}
+) => {
+  const { error } = await supabase
+    .from("form_analytics")
+    .insert({ user_id: userId, event_type: eventType, event_data: eventData });
+
+  if (error) {
+    console.error("Error logging analytics event:", error);
+  }
+};
+
 export default function BusinessName() {
+  const location = useLocation();
   const { updateFormData, formData } = useFormData();
   const navigate = useNavigate();
   const [, setHasDBA] = useState(!!formData.dbaName);
+  const userId = localStorage.getItem("userId");
 
   const {
     register,
@@ -32,15 +49,43 @@ export default function BusinessName() {
 
   const watchHasDBA = watch("hasDBA");
 
-  const onSubmit: SubmitHandler<BusinessNameFormData> = (data) => {
-    updateFormData({
-      businessName: data.businessName,
-      dbaName: data.hasDBA ? data.dbaName : undefined,
-    });
+  useEffect(() => {
+    if (userId) {
+      logAnalyticsEvent(userId, "form_step_viewed", { step: "business_name" });
+    }
+
+    return () => {
+      if (userId) {
+        logAnalyticsEvent(userId, "step_time", {
+          step: "business_name",
+          timeSpentMs: Date.now() - performance.now(),
+        });
+      }
+    };
+  }, [userId]);
+
+  const onSubmit: SubmitHandler<BusinessNameFormData> = async (data) => {
+    if (userId) {
+      updateFormData({
+        businessName: data.businessName,
+        dbaName: data.hasDBA ? data.dbaName : undefined,
+        lastCompletedAt: new Date().toISOString(),
+        lastCompletedStep: location.pathname,
+      });
+      logAnalyticsEvent(userId, "step_completed", {
+        step: "business_name",
+        businessName: data.businessName,
+        hasDBA: data.hasDBA,
+        dbaName: data.dbaName,
+      });
+    }
     navigate("/address");
   };
 
   const handleBack = () => {
+    if (userId) {
+      logAnalyticsEvent(userId, "step_back", { from: "business_name" });
+    }
     navigate("/");
   };
 
@@ -75,6 +120,13 @@ export default function BusinessName() {
             placeholder="Enter your legal business name"
             isInvalid={!!errors.businessName}
             errorMessage={errors.businessName?.message}
+            onChange={(e) => {
+              if (userId) {
+                logAnalyticsEvent(userId, "business_name_input", {
+                  businessName: e.target.value,
+                });
+              }
+            }}
           />
         </motion.div>
         <motion.div
@@ -85,7 +137,14 @@ export default function BusinessName() {
           <Checkbox
             {...register("hasDBA")}
             isSelected={watchHasDBA}
-            onValueChange={(isSelected) => setHasDBA(isSelected)}
+            onValueChange={(isSelected) => {
+              setHasDBA(isSelected);
+              if (userId) {
+                logAnalyticsEvent(userId, "dba_checkbox_changed", {
+                  hasDBA: isSelected,
+                });
+              }
+            }}
           >
             Do you have a DBA (Doing Business As) name?
           </Checkbox>
@@ -110,6 +169,13 @@ export default function BusinessName() {
               placeholder="Enter your DBA name"
               isInvalid={!!errors.dbaName}
               errorMessage={errors.dbaName?.message}
+              onChange={(e) => {
+                if (userId) {
+                  logAnalyticsEvent(userId, "dba_name_input", {
+                    dbaName: e.target.value,
+                  });
+                }
+              }}
             />
           </motion.div>
         )}

@@ -1,11 +1,12 @@
 import { useForm, SubmitHandler } from "react-hook-form";
 import { Input, Button } from "@nextui-org/react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import useFormData from "@/data/useFormData";
 import { ChevronRight, ChevronLeft } from "lucide-react";
 import { motion } from "framer-motion";
 import FormSubmissionHandler from "./FormSubmission";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/utils/supabase";
 
 type PersonalInfoFormData = {
   firstName: string;
@@ -14,10 +15,26 @@ type PersonalInfoFormData = {
   phone: string;
 };
 
+const logAnalyticsEvent = async (
+  userId: string,
+  eventType: string,
+  eventData: unknown = {}
+) => {
+  const { error } = await supabase
+    .from("form_analytics")
+    .insert({ user_id: userId, event_type: eventType, event_data: eventData });
+
+  if (error) {
+    console.error("Error logging analytics event:", error);
+  }
+};
+
 export default function PersonalInfoForm() {
+  const location = useLocation();
   const { updateFormData, formData } = useFormData();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const userId = localStorage.getItem("userId");
 
   const {
     register,
@@ -32,12 +49,40 @@ export default function PersonalInfoForm() {
     },
   });
 
-  const onSubmit: SubmitHandler<PersonalInfoFormData> = (data) => {
-    updateFormData(data);
+  useEffect(() => {
+    if (userId) {
+      logAnalyticsEvent(userId, "form_step_viewed", { step: "personal_info" });
+    }
+
+    return () => {
+      if (userId) {
+        logAnalyticsEvent(userId, "step_time", {
+          step: "personal_info",
+          timeSpentMs: Date.now() - performance.now(),
+        });
+      }
+    };
+  }, [userId]);
+
+  const onSubmit: SubmitHandler<PersonalInfoFormData> = async (data) => {
+    if (userId) {
+      await updateFormData({
+        ...data,
+        lastCompletedAt: new Date().toISOString(),
+        lastCompletedStep: location.pathname,
+      });
+      logAnalyticsEvent(userId, "step_completed", {
+        step: "personal_info",
+        ...data,
+      });
+    }
     setIsSubmitting(true);
   };
 
   const handleBack = () => {
+    if (userId) {
+      logAnalyticsEvent(userId, "step_back", { from: "personal_info" });
+    }
     navigate(-1);
   };
 

@@ -1,19 +1,36 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm, SubmitHandler, Controller } from "react-hook-form";
 import { Input, Button } from "@nextui-org/react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import useFormData from "@/data/useFormData";
 import { ChevronRight, ChevronLeft } from "lucide-react";
 import { motion } from "framer-motion";
+import { supabase } from "@/utils/supabase";
 
 type EinNumberFormData = {
   ein: string;
 };
 
+const logAnalyticsEvent = async (
+  userId: string,
+  eventType: string,
+  eventData: unknown = {}
+) => {
+  const { error } = await supabase
+    .from("form_analytics")
+    .insert({ user_id: userId, event_type: eventType, event_data: eventData });
+
+  if (error) {
+    console.error("Error logging analytics event:", error);
+  }
+};
+
 export default function EINForm() {
+  const location = useLocation();
   const { updateFormData, formData } = useFormData();
   const navigate = useNavigate();
   const [displayValue, setDisplayValue] = useState(formData.ein || "");
+  const userId = localStorage.getItem("userId");
 
   const {
     control,
@@ -28,20 +45,51 @@ export default function EINForm() {
     mode: "onSubmit",
   });
 
-  const onSubmit: SubmitHandler<EinNumberFormData> = (data) => {
+  useEffect(() => {
+    if (userId) {
+      logAnalyticsEvent(userId, "form_step_viewed", { step: "ein" });
+    }
+
+    return () => {
+      if (userId) {
+        logAnalyticsEvent(userId, "step_time", {
+          step: "ein",
+          timeSpentMs: Date.now() - performance.now(),
+        });
+      }
+    };
+  }, [userId]);
+
+  const onSubmit: SubmitHandler<EinNumberFormData> = async (data) => {
     const cleanEin = data.ein.replace(/[^\d]/g, "");
     if (cleanEin.length !== 9) {
       setError("ein", {
         type: "manual",
         message: "EIN must be 9 digits long",
       });
+      if (userId) {
+        logAnalyticsEvent(userId, "ein_validation_failed", { ein: data.ein });
+      }
       return;
     }
-    updateFormData({ ein: data.ein });
+    if (userId) {
+      updateFormData({
+        ein: data.ein,
+        lastCompletedAt: new Date().toISOString(),
+        lastCompletedStep: location.pathname,
+      });
+      logAnalyticsEvent(userId, "step_completed", {
+        step: "ein",
+        ein: data.ein,
+      });
+    }
     navigate("/personal-details");
   };
 
   const handleBack = () => {
+    if (userId) {
+      logAnalyticsEvent(userId, "step_back", { from: "ein" });
+    }
     navigate(-1);
   };
 
@@ -91,6 +139,9 @@ export default function EINForm() {
                   setDisplayValue(formatted);
                   field.onChange(formatted);
                   clearErrors("ein"); // Clear errors as user types
+                  if (userId) {
+                    logAnalyticsEvent(userId, "ein_input", { ein: formatted });
+                  }
                 }}
                 onKeyPress={(e) => {
                   const charCode = e.which ? e.which : e.keyCode;

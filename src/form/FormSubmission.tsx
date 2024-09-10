@@ -3,10 +3,25 @@ import { useNavigate } from "react-router-dom";
 import Lottie from "lottie-react";
 import loadingAnimation from "@/assets/form-page.json";
 import useFormData from "@/data/useFormData";
+import { supabase } from "@/utils/supabase";
+
+const logAnalyticsEvent = async (
+  userId: string,
+  eventType: string,
+  eventData: unknown = {}
+) => {
+  const { error } = await supabase
+    .from("form_analytics")
+    .insert({ user_id: userId, event_type: eventType, event_data: eventData });
+
+  if (error) {
+    console.error("Error logging analytics event:", error);
+  }
+};
 
 const FormSubmissionHandler: React.FC = () => {
   const [, setIsLoading] = useState(true);
-  const { formData } = useFormData();
+  const { formData, updateFormData } = useFormData();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -41,9 +56,31 @@ const FormSubmissionHandler: React.FC = () => {
         );
 
         console.log(response);
+
+        // Log analytics event for form submission
+        if (formData.uuid) {
+          await logAnalyticsEvent(formData.uuid, "form_submitted", {
+            submission_time: new Date().toISOString(),
+          });
+        }
+
+        // Update last completed step
+        await updateFormData({
+          lastCompletedStep: "/thank-you",
+        });
+
         navigate("/thank-you");
       } catch (error) {
         console.error("Error submitting form:", error);
+
+        // Log analytics event for form submission failure
+        if (formData.uuid) {
+          await logAnalyticsEvent(formData.uuid, "form_submission_failed", {
+            error: error instanceof Error ? error.message : String(error),
+            submission_time: new Date().toISOString(),
+          });
+        }
+
         navigate("/sorry");
       } finally {
         setIsLoading(false);
@@ -51,7 +88,7 @@ const FormSubmissionHandler: React.FC = () => {
     };
 
     submitForm();
-  }, [formData, navigate]);
+  }, [formData, navigate, updateFormData]);
 
   return (
     <div className="fixed inset-0 flex items-center justify-center h-screen bg-background/80 backdrop-blur-lg">

@@ -1,15 +1,33 @@
 import { useForm, SubmitHandler } from "react-hook-form";
 import { Input, Button } from "@nextui-org/react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import useFormData from "@/data/useFormData";
 import { ChevronRight, ChevronLeft } from "lucide-react";
 import { motion } from "framer-motion";
+import { useEffect } from "react";
+import { v4 as uuidv4 } from "uuid";
+import { supabase } from "@/utils/supabase";
 
 type YearStartedFormData = {
   yearStarted: string;
 };
 
+const logAnalyticsEvent = async (
+  userId: string,
+  eventType: string,
+  eventData: unknown = {}
+) => {
+  const { error } = await supabase
+    .from("form_analytics")
+    .insert({ user_id: userId, event_type: eventType, event_data: eventData });
+
+  if (error) {
+    console.error("Error logging analytics event:", error);
+  }
+};
+
 export default function YearStarted() {
+  const location = useLocation();
   const { updateFormData, formData } = useFormData();
   const navigate = useNavigate();
   const currentYear = new Date().getFullYear();
@@ -25,12 +43,39 @@ export default function YearStarted() {
     mode: "onSubmit",
   });
 
-  const onSubmit: SubmitHandler<YearStartedFormData> = (data) => {
-    updateFormData({ yearStarted: parseInt(data.yearStarted, 10) });
+  useEffect(() => {
+    const userId = localStorage.getItem("userId") || uuidv4();
+    logAnalyticsEvent(userId, "form_step_viewed", { step: "year_started" });
+
+    return () => {
+      logAnalyticsEvent(userId, "step_time", {
+        step: "year_started",
+        timeSpentMs: Date.now() - performance.now(),
+      });
+    };
+  }, []);
+
+  const onSubmit: SubmitHandler<YearStartedFormData> = async (data) => {
+    const userId = localStorage.getItem("userId");
+    if (userId) {
+      updateFormData({
+        yearStarted: parseInt(data.yearStarted, 10),
+        lastCompletedAt: new Date().toISOString(),
+        lastCompletedStep: location.pathname,
+      });
+      logAnalyticsEvent(userId, "step_completed", {
+        step: "year_started",
+        yearStarted: data.yearStarted,
+      });
+    }
     navigate("/ein");
   };
 
   const handleBack = () => {
+    const userId = localStorage.getItem("userId");
+    if (userId) {
+      logAnalyticsEvent(userId, "step_back", { from: "year_started" });
+    }
     navigate(-1);
   };
 
