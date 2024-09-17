@@ -1,5 +1,4 @@
 import {
-  Link,
   Modal,
   ModalContent,
   ModalHeader,
@@ -8,7 +7,6 @@ import {
   Button,
   useDisclosure,
 } from "@nextui-org/react";
-import { FaFacebook, FaTwitter, FaInstagram, FaLinkedin } from "react-icons/fa";
 
 const Footer = () => {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
@@ -16,7 +14,7 @@ const Footer = () => {
   return (
     <footer className="py-8 border-t border-gray-200 bg-background">
       <div className="container px-4 mx-auto">
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
           {/* Logo and Company Info */}
           <div className="flex flex-col items-start">
             <svg
@@ -38,30 +36,13 @@ const Footer = () => {
           </div>
 
           {/* Social Media Links */}
-          <div>
-            <h3 className="mb-4 text-lg font-semibold">Connect With Us</h3>
-            <div className="flex space-x-4">
-              <Link href="#" aria-label="Facebook">
-                <FaFacebook className="text-2xl hover:text-blue-600" />
-              </Link>
-              <Link href="#" aria-label="Twitter">
-                <FaTwitter className="text-2xl hover:text-blue-400" />
-              </Link>
-              <Link href="#" aria-label="Instagram">
-                <FaInstagram className="text-2xl hover:text-pink-600" />
-              </Link>
-              <Link href="#" aria-label="LinkedIn">
-                <FaLinkedin className="text-2xl hover:text-blue-700" />
-              </Link>
-            </div>
-          </div>
 
           {/* Contact Information */}
           <div>
             <h3 className="mb-4 text-lg font-semibold">Contact Us</h3>
-            <p>123 Insurance Lane</p>
-            <p>Surety City, SA 54321</p>
-            <p>Phone: (555) 123-4567</p>
+            <p>8201 Peters Rd 1000 68</p>
+            <p>Plantation, FL 33324</p>
+            <p>Phone: (561) 300-0300</p>
             <p>Email: info@suretyautogroup.com</p>
           </div>
 
@@ -114,11 +95,19 @@ const Footer = () => {
                 </p>
                 <p className="mt-4 text-sm text-foreground">
                   Our{" "}
-                  <a className="text-blue-600 hover:underline" href="#">
+                  <a
+                    className="text-blue-600 hover:underline"
+                    href="https://suretyautogroup.com/terms-conditions"
+                    target="_blank"
+                  >
                     Terms & conditions
                   </a>{" "}
                   and{" "}
-                  <a href="#" className="text-blue-600 hover:underline">
+                  <a
+                    href="https://suretyautogroup.com/privacy-policy"
+                    className="text-blue-600 hover:underline"
+                    target="_blank"
+                  >
                     Privacy policy
                   </a>{" "}
                   apply. Message and data rates may apply. You can text "STOP"
